@@ -1,0 +1,13 @@
+{
+    "topics": [
+      {
+        "id": "ai",
+        "name": "AI",
+        "enabled": true,
+        "sources": [
+          { "name": "OpenAI Blog", "url": "https://openai.com/blog/rss.xml" }
+        ]
+      }
+    ]
+  }
+  
