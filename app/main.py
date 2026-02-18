@@ -1,5 +1,18 @@
+"""
+app/main.py
+
+Main FastAPI application entry point.
+"""
+
+from dotenv import load_dotenv
+load_dotenv()
+
+from contextlib import asynccontextmanager
+import os
+
 from fastapi import FastAPI
 from app.config.loader import load_topics
+from app.api.routes import router
 
 app = FastAPI(
     title="AI Digest Assistant",
@@ -7,6 +20,15 @@ app = FastAPI(
     version="0.1.0"
 )
 
+app.include_router(router)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup checks
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is not set in .env")
+    yield
+    
 @app.get("/")
 def root():
     return {

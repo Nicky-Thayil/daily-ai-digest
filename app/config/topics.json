@@ -1,13 +1,94 @@
 {
-    "topics": [
-      {
-        "id": "ai",
-        "name": "AI",
-        "enabled": true,
-        "sources": [
-          { "name": "OpenAI Blog", "url": "https://openai.com/blog/rss.xml" }
-        ]
-      }
-    ]
-  }
-  
+  "topics": [
+    {
+      "id": "ai",
+      "name": "AI",
+      "enabled": true,
+      "sources": [
+        { "name": "MIT Technology Review - AI", "url": "https://www.technologyreview.com/feed/" },
+        { "name": "DeepMind Blog", "url": "https://deepmind.google/blog/rss.xml" },
+        { "name": "Hugging Face Blog", "url": "https://huggingface.co/blog/feed.xml" }
+      ]
+    },
+    {
+      "id": "programming",
+      "name": "Programming",
+      "enabled": true,
+      "sources": [
+        { "name": "Hacker News", "url": "https://hnrss.org/frontpage" },
+        { "name": "GitHub Blog", "url": "https://github.blog/feed/" },
+        { "name": "Stack Overflow Blog", "url": "https://stackoverflow.blog/feed/" }
+      ]
+    },
+    {
+      "id": "space",
+      "name": "Space",
+      "enabled": true,
+      "sources": [
+        { "name": "NASA Breaking News", "url": "https://www.nasa.gov/rss/dyn/breaking_news.rss" },
+        { "name": "Space.com", "url": "https://www.space.com/feeds/all" },
+        { "name": "SpaceNews", "url": "https://spacenews.com/feed/" }
+      ]
+    },
+    {
+      "id": "football",
+      "name": "Football",
+      "enabled": true,
+      "sources": [
+        { "name": "BBC Sport - Football", "url": "https://feeds.bbci.co.uk/sport/football/rss.xml" },
+        { "name": "The Guardian - Football", "url": "https://www.theguardian.com/football/rss" },
+        { "name": "ESPN FC", "url": "https://www.espn.com/espn/rss/soccer/news" }
+      ]
+    },
+    {
+      "id": "cars",
+      "name": "Cars",
+      "enabled": true,
+      "sources": [
+        { "name": "Motor Trend", "url": "https://www.motortrend.com/feed/" },
+        { "name": "Car and Driver", "url": "https://www.caranddriver.com/rss/all.xml/" },
+        { "name": "Top Gear", "url": "https://www.topgear.com/rss.xml" }
+      ]
+    },
+    {
+      "id": "food",
+      "name": "Food",
+      "enabled": true,
+      "sources": [
+        { "name": "Serious Eats", "url": "https://www.seriouseats.com/feeds/all.rss.xml" },
+        { "name": "Food52", "url": "https://food52.com/blog/feed" },
+        { "name": "Epicurious", "url": "https://www.epicurious.com/feed/all" }
+      ]
+    },
+    {
+      "id": "physics",
+      "name": "Physics",
+      "enabled": true,
+      "sources": [
+        { "name": "Physics World", "url": "https://physicsworld.com/feed/" },
+        { "name": "Phys.org - Physics", "url": "https://phys.org/rss-feed/physics-news/" },
+        { "name": "APS Physics", "url": "https://physics.aps.org/rss/recent.xml" }
+      ]
+    },
+    {
+      "id": "mathematics",
+      "name": "Mathematics",
+      "enabled": true,
+      "sources": [
+        { "name": "Quanta Magazine - Math", "url": "https://www.quantamagazine.org/mathematics/feed/" },
+        { "name": "AMS - Math in the Media", "url": "https://www.ams.org/mathmoments/rss" },
+        { "name": "Plus Magazine", "url": "https://plus.maths.org/content/rss.xml" }
+      ]
+    },
+    {
+      "id": "biology",
+      "name": "Biology",
+      "enabled": true,
+      "sources": [
+        { "name": "Nature - Biology", "url": "https://www.nature.com/subjects/biological-sciences.rss" },
+        { "name": "ScienceDaily - Biology", "url": "https://www.sciencedaily.com/rss/plants_animals.xml" },
+        { "name": "Phys.org - Biology", "url": "https://phys.org/rss-feed/biology-news/" }
+      ]
+    }
+  ]
+}
