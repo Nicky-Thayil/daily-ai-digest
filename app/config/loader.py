@@ -1,7 +1,12 @@
+"""
+Load topics from the topics.json file.
+"""
+
 import json
 from pathlib import Path
 
 def load_topics(path: str = "app/config/topics.json") -> dict:
+    """Read topics from the topics.json file and validate them."""
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(f"Config not found: {p}")

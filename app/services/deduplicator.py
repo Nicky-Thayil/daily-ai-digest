@@ -1,9 +1,5 @@
 """
-Deduplicates articles within each topic using:
-  1. Exact URL matching (already handled by fetcher, but re-checked here for safety)
-  2. Jaccard title similarity — catches the same story from multiple outlets
-
-Only compares articles within the same topic, not across topics.
+Article deduplication service.
 """
 
 import logging
@@ -24,48 +20,26 @@ STOPWORDS = {
     "why", "what", "who", "will", "can", "just", "more", "up", "about",
 }
 
-# ---------------------------------------------------------------------------
+
 # Helpers
-# ---------------------------------------------------------------------------
 def _normalize(title: str) -> set[str]:
-    """
-    Lowercase, strip punctuation, remove stopwords.
-    Returns a set of meaningful words for Jaccard comparison.
-    """
+    """Normalize a title by converting it to lowercase, removing punctuation, and splitting into words."""
     title = title.lower()
     title = title.translate(str.maketrans("", "", string.punctuation))
     words = title.split()
     return {w for w in words if w not in STOPWORDS and len(w) > 1}
 
 def _jaccard(set_a: set[str], set_b: set[str]) -> float:
-    """
-    Jaccard similarity = |intersection| / |union|
-    Returns 0.0 if both sets are empty.
-    """
+    """Calculate the Jaccard similarity between two sets of words."""
     if not set_a and not set_b:
         return 0.0
     intersection = len(set_a & set_b)
     union = len(set_a | set_b)
     return intersection / union
 
-# ---------------------------------------------------------------------------
 # Public interface
-# ---------------------------------------------------------------------------
 def deduplicate(articles: list[Article]) -> list[Article]:
-    """
-    Remove duplicate articles using URL deduplication and Jaccard title
-    similarity. Runs independently within each topic group.
-
-    Strategy:
-    - Iterate through articles in order (fetcher order = source order)
-    - For each article, compare its normalized title against all already-kept
-      articles in the same topic
-    - If similarity >= SIMILARITY_THRESHOLD with any kept article, discard it
-    - Otherwise keep it
-
-    The first-seen article wins (earlier sources in topics.json are preferred),
-    so put your highest-quality sources first in topics.json.
-    """
+    """Deduplicate articles within each topic by URL and title similarity."""
     # Group by topic
     by_topic: dict[str, list[Article]] = {}
     for article in articles:

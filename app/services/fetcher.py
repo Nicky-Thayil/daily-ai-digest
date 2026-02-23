@@ -1,7 +1,5 @@
 """
-Async RSS feed fetcher using httpx + feedparser.
-Fetches all configured feeds concurrently and returns
-a normalized list of Article objects.
+Async RSS feed fetching service.
 """
 
 import asyncio
@@ -18,25 +16,21 @@ import httpx
 logger = logging.getLogger(__name__)
 
 TIMEOUT = httpx.Timeout(10.0, connect=5.0)
-MAX_CONCURRENT = 10  # semaphore: max simultaneous open connections
+MAX_CONCURRENT = 10  # max simultaneous open connections
 
-# ---------------------------------------------------------------------------
+
 # Data model
-# ---------------------------------------------------------------------------
-
 @dataclass
 class Article:
     title: str
     url: str
     summary: str
     published: datetime | None
-    source: str   # e.g. "OpenAI Blog"
-    topic: str    # e.g. "ai"
+    source: str   
+    topic: str    
 
 
-# ---------------------------------------------------------------------------
 # Internal helpers
-# ---------------------------------------------------------------------------
 def _strip_html(text: str) -> str:
     """Remove HTML tags and decode entities from a string."""
     text = re.sub(r"<[^>]+>", " ", text)   # strip tags
@@ -45,11 +39,7 @@ def _strip_html(text: str) -> str:
     return text.strip()
 
 def _parse_date(entry: feedparser.FeedParserDict) -> datetime | None:
-    """
-    Convert feedparser's struct_time to a timezone-aware datetime.
-    Tries published_parsed first, then updated_parsed.
-    Returns None if neither is available.
-    """
+    """Parse date into a timezone-aware datetime."""
     raw: struct_time | None = entry.get("published_parsed") or entry.get("updated_parsed")
     if raw is None:
         return None
@@ -65,10 +55,7 @@ def _parse_entries(
     source_name: str,
     topic_id: str,
 ) -> list[Article]:
-    """
-    Normalize raw feedparser entries into Article objects.
-    Skips entries that are missing a title or URL.
-    """
+    """Convert feed entries into Article objects."""
     articles: list[Article] = []
 
     for entry in feed.entries:
@@ -79,7 +66,6 @@ def _parse_entries(
         if not title or not url:
             continue
 
-        # Try summary, then content (Atom feeds), then fall back to empty string
         raw_summary = (
             entry.get("summary")
             or (entry.get("content") or [{}])[0].get("value")
@@ -101,10 +87,7 @@ def _parse_entries(
     return articles
 
 
-# ---------------------------------------------------------------------------
 # Core fetch logic
-# ---------------------------------------------------------------------------
-
 async def _fetch_feed(
     client: httpx.AsyncClient,
     sem: asyncio.Semaphore,
@@ -112,11 +95,7 @@ async def _fetch_feed(
     url: str,
     topic_id: str,
 ) -> list[Article]:
-    """
-    Fetch a single RSS feed and return parsed articles.
-    Returns an empty list on any network or parse error so one
-    bad feed never takes down the whole batch.
-    """
+    """Fetch a single RSS feed."""
     async with sem:
         try:
             response = await client.get(url, timeout=TIMEOUT)
@@ -148,26 +127,7 @@ async def _fetch_feed(
 
 
 async def fetch_all_feeds(topics_data: dict) -> list[Article]:
-    """
-    Fetch every feed across all topics concurrently.
-
-    Expects the shape from your topics.json:
-        {
-          "topics": [
-            {
-              "id": "ai",
-              "name": "AI",
-              "enabled": true,
-              "sources": [
-                {"name": "OpenAI Blog", "url": "https://..."}
-              ]
-            }
-          ]
-        }
-
-    Only fetches topics where "enabled" is true.
-    Returns a flat, URL-deduplicated list of Articles.
-    """
+    """Fetch all enabled RSS feeds concurrently."""
     sem = asyncio.Semaphore(MAX_CONCURRENT)
 
     enabled_topics = [t for t in topics_data.get("topics", []) if t.get("enabled", True)]

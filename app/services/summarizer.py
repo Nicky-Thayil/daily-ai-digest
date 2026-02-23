@@ -1,7 +1,5 @@
 """
-Generates a bullet-point digest for each topic using GPT-4o-mini.
-Takes deduplicated articles, trims to the 10 most recent per topic,
-and returns a structured digest ready for display.
+Generate AI summaries of news articles.
 """
 
 import logging
@@ -17,10 +15,8 @@ logger = logging.getLogger(__name__)
 MAX_ARTICLES_PER_TOPIC = 10
 MAX_SUMMARY_CHARS = 300
 
-# ---------------------------------------------------------------------------
-# Data model
-# ---------------------------------------------------------------------------
 
+# Data model
 @dataclass
 class TopicDigest:
     topic_id: str
@@ -35,14 +31,10 @@ class Digest:
     generated_at: datetime
     total_articles_summarized: int
 
-# ---------------------------------------------------------------------------
+
 # Internal helpers
-# ---------------------------------------------------------------------------
 def _trim_articles(articles: list[Article]) -> list[Article]:
-    """
-    Sort by published date (most recent first) and take top MAX_ARTICLES_PER_TOPIC.
-    Articles with no publish date are sorted to the end.
-    """
+    """Sort articles by publish date and keep the most recent ones."""
     def sort_key(a: Article):
         if a.published is None:
             return datetime.min.replace(tzinfo=timezone.utc)
@@ -53,9 +45,7 @@ def _trim_articles(articles: list[Article]) -> list[Article]:
 
 
 def _build_prompt(topic_name: str, articles: list[Article]) -> str:
-    """
-    Build the user prompt sent to GPT-4o-mini for one topic.
-    """
+    """Build the user prompt sent to GPT-4o-mini for one topic."""
     article_lines = []
     for i, article in enumerate(articles, 1):
         summary = article.summary[:MAX_SUMMARY_CHARS] if article.summary else "No summary available."
@@ -80,25 +70,14 @@ Each bullet should:
 
 Return only the bullet points, one per line, starting each with "•"."""
 
-# ---------------------------------------------------------------------------
+
 # Public interface
-# ---------------------------------------------------------------------------
 async def summarize(
     articles: list[Article],
     topics_data: dict,
     client: AsyncOpenAI | None = None,
 ) -> Digest:
-    """
-    Generate a bullet-point digest for each topic.
-
-    Args:
-        articles:     Deduplicated list of Article objects from the fetcher.
-        topics_data:  The loaded topics.json dict (used for display names).
-        client:       Optional AsyncOpenAI client (injected for testing).
-
-    Returns:
-        A Digest containing a TopicDigest for each topic that had articles.
-    """
+    """Generate a bullet-point digest for each topic."""
     if client is None:
         client = AsyncOpenAI()  # reads OPENAI_API_KEY from environment
 
