@@ -73,8 +73,8 @@ jobs:
             --min-instances 1 \
             --max-instances 1 \
             --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,DATABASE_MIGRATION_URL=DATABASE_MIGRATION_URL:latest,REDIS_URL=REDIS_URL:latest" \
-            --command="" \
-            --args="sh,-c,celery -A app.workers.celery_app.celery_app worker --loglevel=info --pool=solo"
+            --command="sh" \
+            --args="-c,python -m http.server 8080 & celery -A app.workers.celery_app.celery_app worker --loglevel=info --pool=solo"
 
       - name: Get API service URL
         run: |
