@@ -1,0 +1,84 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ai-digest-488601
+  REGION: us-central1
+  REPO: ai-digest
+  API_SERVICE: ai-digest-api
+  WORKER_SERVICE: ai-digest-worker
+  IMAGE: us-central1-docker.pkg.dev/ai-digest-488601/ai-digest/ai-digest-app
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          docker build \
+            --target runtime \
+            --tag ${{ env.IMAGE }}:${{ github.sha }} \
+            --tag ${{ env.IMAGE }}:latest \
+            .
+          docker push ${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE }}:latest
+
+      - name: Deploy API to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.API_SERVICE }} \
+            --image ${{ env.IMAGE }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8000 \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 3 \
+            --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,DATABASE_MIGRATION_URL=DATABASE_MIGRATION_URL:latest,REDIS_URL=REDIS_URL:latest" \
+            --command="" \
+            --args="sh,-c,uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+      - name: Deploy Worker to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.WORKER_SERVICE }} \
+            --image ${{ env.IMAGE }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --no-allow-unauthenticated \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 1 \
+            --max-instances 1 \
+            --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,DATABASE_MIGRATION_URL=DATABASE_MIGRATION_URL:latest,REDIS_URL=REDIS_URL:latest" \
+            --command="" \
+            --args="sh,-c,celery -A app.workers.celery_app.celery_app worker --loglevel=info --pool=solo"
+
+      - name: Get API service URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.API_SERVICE }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)')
+          echo "API deployed at: $URL"
